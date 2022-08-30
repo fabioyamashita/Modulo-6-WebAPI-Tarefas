@@ -1,3 +1,8 @@
 # Módulo 6 - Programação Web III | Web API - Tarefas
 
-## Completar WebAPI Requests - Entrega até dia 01/09/2022
+## Completar WebAPI Requests (SteamAPI - até 01/09/2022)
+
+Implementar os métodos que faltaram na aula:
+- Delete
+- Patch
+- Post
