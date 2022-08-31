@@ -58,7 +58,12 @@ namespace SteamAPI.Controllers
         {
             var databaseGames = await _repository.GetByKey(id);
 
-            if(databaseGames == null)
+            // Comentário: A Criação de um novo registro deveria estar no POST???
+            // RFC fala que deve criar se não existir, outros falam para usar :
+            // POST PARA CRIAR
+            // PUT PARA ATUALIZAR TODO O REGISTRO
+            // PATCH PARA ATUALIZAR PARTE
+            if (databaseGames == null)
             {
                 var inserted = await _repository.Insert(entity);
                 return Created(string.Empty, inserted);
@@ -70,5 +75,23 @@ namespace SteamAPI.Controllers
 
             return Ok(updated);
         }
+
+        [HttpPost]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(Games), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> AddGames([FromBody] Games entity)
+        {
+            var databaseGames = await _repository.GetByKey(entity.Id);
+
+            if (databaseGames != null)
+            {
+                return BadRequest($"Cannot create a game with duplicated id. The id {entity.Id} already exists!");
+            }
+
+            var inserted = await _repository.Insert(entity);
+            return Created(string.Empty, inserted);
+        }
+
     }
 }
