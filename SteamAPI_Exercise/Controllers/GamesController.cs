@@ -137,5 +137,29 @@ namespace SteamAPI.Controllers
             return Ok(updatedGame);
         }
 
+        // Segunda forma de implementar o patch
+        //[HttpPatch("{id2}")]
+        //[Consumes(MediaTypeNames.Application.Json)]
+        //[ProducesResponseType(typeof(Games), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(typeof(string), StatusCodes.Status415UnsupportedMediaType)]
+        //public async Task<IActionResult> Patch2([FromRoute] int id2, [FromBody] GamesPatch patchEntity)
+        //{
+        //    var databaseGames = await _repository.GetByKey(id2);
+
+        //    if (databaseGames == null)
+        //    {
+        //        return NotFound("Id inexistente");
+        //    }
+
+        //    databaseGames.Platforms = patchEntity.Platforms;
+        //    databaseGames.Categories = patchEntity.Categories;
+        //    databaseGames.Genres = patchEntity.Genres;
+
+        //    var updatedGame = await _repository.Update(id2, databaseGames);
+
+        //    return Ok(updatedGame);
+        //}
+
     }
 }
