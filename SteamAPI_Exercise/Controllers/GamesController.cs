@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SteamAPI.Controllers.CustomResponses;
 using SteamAPI.Interfaces;
 using SteamAPI.Models;
 using SteamAPI.Repositories;
@@ -42,10 +43,10 @@ namespace SteamAPI.Controllers
         public async Task<IActionResult> Get([FromRoute] int id)
         {
             var game = await _repository.GetByKey(id);
-            if(game == null)
-        {
+            if (game == null)
+            {
                 return NotFound("Id Inexistente");
-        }
+            }
             return Ok(game);
         }
 
@@ -92,6 +93,29 @@ namespace SteamAPI.Controllers
             var inserted = await _repository.Insert(entity);
             return Created(string.Empty, inserted);
         }
+
+        [HttpDelete("{id}")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(DeleteOkCustomResponse),StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> Delete([FromRoute] int id)
+        {
+            var databaseGames = await _repository.GetByKey(id);
+
+            if (databaseGames == null)
+            {
+                return NoContent();
+            }
+
+            await _repository.Delete(id);
+            return Ok(new DeleteOkCustomResponse
+            {
+                Code = StatusCodes.Status200OK.ToString(),
+                Id = id,
+                Message = $"Id #{id} deletado com sucesso!"
+            });
+        }
+
 
     }
 }
