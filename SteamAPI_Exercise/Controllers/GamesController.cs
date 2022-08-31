@@ -79,14 +79,14 @@ namespace SteamAPI.Controllers
         [HttpPost]
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(Games), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> AddGames([FromBody] Games entity)
         {
             var databaseGames = await _repository.GetByKey(entity.Id);
 
             if (databaseGames != null)
             {
-                return BadRequest($"Cannot create a game with duplicated id. The id {entity.Id} already exists!");
+                return Conflict($"Não é possível adicionar um jogo com um id existente. O id #{entity.Id} já existe!");
             }
 
             var inserted = await _repository.Insert(entity);
