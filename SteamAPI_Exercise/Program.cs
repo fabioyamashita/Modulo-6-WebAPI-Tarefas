@@ -1,4 +1,7 @@
+using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SteamAPI.Context;
 using SteamAPI.Interfaces;
 using SteamAPI.Repositories;
@@ -10,11 +13,17 @@ namespace SteamAPI
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            
-            
+
+
             // Add services to the container.
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers().AddNewtonsoftJson();
+
+            builder.Services.AddControllers(options =>
+            {
+                options.InputFormatters.Insert(0, MyJPIF.GetJsonPatchInputFormatter());
+            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -63,6 +72,25 @@ namespace SteamAPI
             #endregion
 
             app.Run();
+        }
+
+        public static class MyJPIF
+        {
+            public static NewtonsoftJsonPatchInputFormatter GetJsonPatchInputFormatter()
+            {
+                var builder = new ServiceCollection()
+                    .AddLogging()
+                    .AddMvc()
+                    .AddNewtonsoftJson()
+                    .Services.BuildServiceProvider();
+
+                return builder
+                    .GetRequiredService<IOptions<MvcOptions>>()
+                    .Value
+                    .InputFormatters
+                    .OfType<NewtonsoftJsonPatchInputFormatter>()
+                    .First();
+            }
         }
     }
 }

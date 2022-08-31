@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc;
 using SteamAPI.Controllers.CustomResponses;
+using SteamAPI.DTO;
 using SteamAPI.Interfaces;
 using SteamAPI.Models;
 using SteamAPI.Repositories;
@@ -59,11 +61,7 @@ namespace SteamAPI.Controllers
         {
             var databaseGames = await _repository.GetByKey(id);
 
-            // Comentário: A Criação de um novo registro deveria estar no POST???
-            // RFC fala que deve criar se não existir, outros falam para usar :
-            // POST PARA CRIAR
-            // PUT PARA ATUALIZAR TODO O REGISTRO
-            // PATCH PARA ATUALIZAR PARTE
+            // UPSERT
             if (databaseGames == null)
             {
                 var inserted = await _repository.Insert(entity);
@@ -81,6 +79,7 @@ namespace SteamAPI.Controllers
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(Games), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(string), StatusCodes.Status409Conflict)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status415UnsupportedMediaType)]
         public async Task<IActionResult> AddGames([FromBody] Games entity)
         {
             var databaseGames = await _repository.GetByKey(entity.Id);
@@ -98,6 +97,7 @@ namespace SteamAPI.Controllers
         [Consumes(MediaTypeNames.Application.Json)]
         [ProducesResponseType(typeof(DeleteOkCustomResponse),StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status415UnsupportedMediaType)]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
             var databaseGames = await _repository.GetByKey(id);
@@ -107,7 +107,7 @@ namespace SteamAPI.Controllers
                 return NoContent();
             }
 
-            await _repository.Delete(id);
+            var deletedGame = await _repository.Delete(id);
             return Ok(new DeleteOkCustomResponse
             {
                 Code = StatusCodes.Status200OK.ToString(),
@@ -116,6 +116,26 @@ namespace SteamAPI.Controllers
             });
         }
 
+        [HttpPatch("{id}")]
+        [Consumes(MediaTypeNames.Application.Json)]
+        [ProducesResponseType(typeof(Games), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status415UnsupportedMediaType)]
+        public async Task<IActionResult> Patch([FromRoute] int id, [FromBody] JsonPatchDocument<Games> patchEntity)
+        {
+            var databaseGames = await _repository.GetByKey(id);
+
+            if (databaseGames == null)
+            {
+                return NotFound("Id inexistente");
+            }
+
+            patchEntity.ApplyTo(databaseGames, ModelState);
+
+            var updatedGame = await _repository.Update(id, databaseGames);
+
+            return Ok(updatedGame);
+        }
 
     }
 }
