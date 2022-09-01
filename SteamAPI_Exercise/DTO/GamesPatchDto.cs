@@ -2,10 +2,9 @@
 
 namespace SteamAPI.DTO
 {
-    public class GamesPatch
+    public class GamesPatchDto
     {
+        [JsonPropertyName("platforms")]
         public string Platforms { get; set; }
-        public string Categories { get; set; }
-        public string Genres { get; set; }
     }
 }

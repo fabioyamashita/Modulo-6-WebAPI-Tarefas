@@ -116,36 +116,37 @@ namespace SteamAPI.Controllers
             });
         }
 
-        [HttpPatch("{id}")]
-        [Consumes(MediaTypeNames.Application.Json)]
-        [ProducesResponseType(typeof(Games), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(string), StatusCodes.Status415UnsupportedMediaType)]
-        public async Task<IActionResult> Patch([FromRoute] int id, [FromBody] JsonPatchDocument<Games> patchEntity)
-        {
-            var databaseGames = await _repository.GetByKey(id);
+        // Primeira forma de implementar
+        //[HttpPatch("{id}")]
+        //[Consumes(MediaTypeNames.Application.Json, new[] {"application/xml", "text/plain"})]
+        //[ProducesResponseType(typeof(Games), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+        //[ProducesResponseType(typeof(string), StatusCodes.Status415UnsupportedMediaType)]
+        //public async Task<IActionResult> Patch([FromRoute] int id, [FromBody] JsonPatchDocument<Games> patchEntity)
+        //{
+        //    var databaseGames = await _repository.GetByKey(id);
 
-            if (databaseGames == null)
-            {
-                return NotFound("Id inexistente");
-            }
+        //    if (databaseGames == null)
+        //    {
+        //        return NotFound("Id inexistente");
+        //    }
 
-            patchEntity.ApplyTo(databaseGames, ModelState);
+        //    patchEntity.ApplyTo(databaseGames, ModelState);
 
-            var updatedGame = await _repository.Update(id, databaseGames);
+        //    var updatedGame = await _repository.Update(id, databaseGames);
 
-            return Ok(updatedGame);
-        }
+        //    return Ok(updatedGame);
+        //}
 
         // Segunda forma de implementar o patch
-        //[HttpPatch("{id2}")]
+        //[HttpPatch("{id}")]
         //[Consumes(MediaTypeNames.Application.Json)]
         //[ProducesResponseType(typeof(Games), StatusCodes.Status200OK)]
         //[ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         //[ProducesResponseType(typeof(string), StatusCodes.Status415UnsupportedMediaType)]
-        //public async Task<IActionResult> Patch2([FromRoute] int id2, [FromBody] GamesPatch patchEntity)
+        //public async Task<IActionResult> Patch2([FromRoute] int id, [FromBody] GamesPatchDto patchEntity)
         //{
-        //    var databaseGames = await _repository.GetByKey(id2);
+        //    var databaseGames = await _repository.GetByKey(id);
 
         //    if (databaseGames == null)
         //    {
@@ -153,13 +154,62 @@ namespace SteamAPI.Controllers
         //    }
 
         //    databaseGames.Platforms = patchEntity.Platforms;
-        //    databaseGames.Categories = patchEntity.Categories;
-        //    databaseGames.Genres = patchEntity.Genres;
 
-        //    var updatedGame = await _repository.Update(id2, databaseGames);
+        //    var updatedGame = await _repository.Update(id, databaseGames);
 
         //    return Ok(updatedGame);
         //}
+
+        //// ------------------------------------------------
+        //// Exemplos da aula
+        //[HttpPost]
+        //[Consumes(MediaTypeNames.Application.Json)]
+        //[ProducesResponseType(typeof(Games), StatusCodes.Status201Created)]
+        //[ProducesResponseType(typeof(string), StatusCodes.Status409Conflict)]
+        //[ProducesResponseType(typeof(string), StatusCodes.Status415UnsupportedMediaType)]
+        //public async Task<IActionResult> Post([FromBody] GamesDto entity)
+        //{
+        //    var gamesToInsert = new Games(id: 0, entity.AppId, entity.Name, entity.Developer, 
+        //        entity.Platforms, genres: entity.Genres, categories: entity.Categories);
+
+        //    var inserted = await _repository.Insert(gamesToInsert);
+        //    return Created(string.Empty, inserted);
+        //}
+
+        //[HttpPatch("{id}")]
+        //[Consumes(MediaTypeNames.Application.Json)]
+        //[ProducesResponseType(typeof(Games), StatusCodes.Status201Created)]
+        //[ProducesResponseType(typeof(string), StatusCodes.Status409Conflict)]
+        //[ProducesResponseType(typeof(string), StatusCodes.Status415UnsupportedMediaType)]
+        //public async Task<IActionResult> Patch([FromRoute] int id, [FromBody] GamesPatchDto entity)
+        //{
+        //    var databaseGames = await _repository.GetByKey(id);
+
+        //    if (databaseGames == null)
+        //    {
+        //        var error = "Id Inexistente";
+        //        return NoContent();
+        //    }
+
+        //    databaseGames.Platforms = entity.Platforms;
+        //    var updatedGame = await _repository.Update(id, databaseGames);
+
+        //    return Ok(updatedGame);
+        //}
+
+        // ---------------------------------------
+        // POST COMO GET!
+        [HttpPost("{id}")]
+        public async Task<IActionResult> RecuperaDados([FromRoute] int id)
+        {
+            var games = await _repository.GetByKey(id);
+
+            if (games == null)
+            {
+                return NotFound();
+            }
+            return Ok(games);
+        }
 
     }
 }

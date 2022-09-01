@@ -1,8 +1,6 @@
-using Microsoft.AspNetCore.Mvc.Formatters;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using SteamAPI.Context;
+using SteamAPI.Filters;
 using SteamAPI.Interfaces;
 using SteamAPI.Repositories;
 
@@ -14,14 +12,12 @@ namespace SteamAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
+
             // Add services to the container.
-            builder.Services.AddControllers().AddNewtonsoftJson();
 
+            builder.Services.AddControllers();
             builder.Services.AddControllers(options =>
-            {
-                options.InputFormatters.Insert(0, MyJPIF.GetJsonPatchInputFormatter());
-            });
-
+                options.Filters.Add(typeof(CustomActionFilterGlobal)));
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -57,6 +53,7 @@ namespace SteamAPI
 
             app.UseAuthorization();
 
+
             app.MapControllers();
 
             #region Popula o banco de dados
@@ -69,25 +66,6 @@ namespace SteamAPI
             #endregion
 
             app.Run();
-        }
-
-        public static class MyJPIF
-        {
-            public static NewtonsoftJsonPatchInputFormatter GetJsonPatchInputFormatter()
-            {
-                var builder = new ServiceCollection()
-                    .AddLogging()
-                    .AddMvc()
-                    .AddNewtonsoftJson()
-                    .Services.BuildServiceProvider();
-
-                return builder
-                    .GetRequiredService<IOptions<MvcOptions>>()
-                    .Value
-                    .InputFormatters
-                    .OfType<NewtonsoftJsonPatchInputFormatter>()
-                    .First();
-            }
         }
     }
 }
