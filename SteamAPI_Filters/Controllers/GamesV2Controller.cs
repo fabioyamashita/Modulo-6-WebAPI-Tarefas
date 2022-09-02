@@ -36,6 +36,7 @@ namespace SteamAPI.Controllers
         [CustomActionFilterEndpoint]
         public async Task<IActionResult> Get([FromQuery] int page, int maxResults)
         {
+            throw new Exception("Teste de exception");
             var games = await _repository.Get(page, maxResults);
             return Ok(games);
         }

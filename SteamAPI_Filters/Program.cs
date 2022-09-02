@@ -20,6 +20,7 @@ namespace SteamAPI
             builder.Services.AddControllers(options => {
                 options.Filters.Add(typeof(CustomActionFilterGlobal));
                 options.Filters.Add(typeof(V1DiscontinuedResourceFilter));
+                options.Filters.Add(typeof(CustomExceptionFilterGlobal));
             });
 
 
