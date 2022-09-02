@@ -12,6 +12,9 @@ namespace SteamAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Adicionando logging nas dependências
+            builder.Logging.ClearProviders();
+            builder.Logging.AddConsole();
 
             // Add services to the container.
 
@@ -20,7 +23,7 @@ namespace SteamAPI
             builder.Services.AddControllers(options => {
                 options.Filters.Add(typeof(CustomActionFilterGlobal));
                 options.Filters.Add(typeof(V1DiscontinuedResourceFilter));
-                options.Filters.Add(typeof(CustomExceptionFilterGlobal));
+                //options.Filters.Add(typeof(CustomExceptionFilterGlobal));
             });
 
 
@@ -54,15 +57,17 @@ namespace SteamAPI
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.Logger.LogInformation("Configuring https...");
             app.UseHttpsRedirection();
 
+            app.Logger.LogInformation("Configuring authorization...");
             app.UseAuthorization();
 
-
+            app.Logger.LogInformation("Configuring MapControllers...");
             app.MapControllers();
 
             #region Popula o banco de dados
+            app.Logger.LogInformation("Creating database...");
             var scopedFactory = app.Services.GetService<IServiceScopeFactory>();
             using (var scope = scopedFactory.CreateScope())
             {
@@ -71,6 +76,7 @@ namespace SteamAPI
             }
             #endregion
 
+            app.Logger.LogInformation("Starting the app...");
             app.Run();
         }
     }

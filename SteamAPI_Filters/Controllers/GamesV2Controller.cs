@@ -15,10 +15,12 @@ namespace SteamAPI.Controllers
     {
 
         private readonly IBaseRepository<Games> _repository;
+        private readonly ILogger _logger;
 
-        public GamesV2Controller(IBaseRepository<Games> repository)
+        public GamesV2Controller(IBaseRepository<Games> repository, ILogger<GamesV2Controller> logger)
         {
             _repository = repository;
+            _logger = logger;
         }
 
         private Games UpdateGamesModel(Games newData, GamesDto entity)
@@ -36,17 +38,18 @@ namespace SteamAPI.Controllers
         [CustomActionFilterEndpoint]
         public async Task<IActionResult> Get([FromQuery] int page, int maxResults)
         {
-            throw new Exception("Teste de exception");
+            //throw new Exception("Teste de exception");
             var games = await _repository.Get(page, maxResults);
             return Ok(games);
         }
 
         [HttpGet("{id}")]
-        [ShortCircuitFilter]
+        //[ShortCircuitFilter]
         [ProducesResponseType(typeof(Games), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Get([FromRoute] int id)
         {
+            _logger.LogInformation("Executando a api api/v2/Games/{id}", id);
             var game = await _repository.GetByKey(id);
             if (game == null)
             {
