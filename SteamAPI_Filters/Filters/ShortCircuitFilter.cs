@@ -9,7 +9,7 @@ namespace SteamAPI.Filters
     {
         public void OnActionExecuted(ActionExecutedContext context)
         {
-            
+            Console.WriteLine("After Short-circuit");
         }
 
         public void OnActionExecuting(ActionExecutingContext context)
@@ -18,6 +18,7 @@ namespace SteamAPI.Filters
             // Imaginem que esta linha abaixo está recuperando os dados do cache
             // Neste caso, o fluxo de execução do pipeline de filtros é interrompido (short-circuit)
             var res = JsonSerializer.Serialize(new Games(1, 1, "Cache", "a", "a", "a", "a"));
+            Console.WriteLine("Short-circuit");
             context.Result = new ContentResult()
             {
                 Content = res

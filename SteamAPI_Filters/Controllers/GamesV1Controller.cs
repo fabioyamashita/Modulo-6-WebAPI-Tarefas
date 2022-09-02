@@ -8,15 +8,15 @@ using System.Net.Mime;
 
 namespace SteamAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/Games")]
     [ApiController]
     [CustomAsyncActionFilterController]
-    public class GamesController : ControllerBase
+    public class GamesV1Controller : ControllerBase
     {
 
         private readonly IBaseRepository<Games> _repository;
 
-        public GamesController(IBaseRepository<Games> repository)
+        public GamesV1Controller(IBaseRepository<Games> repository)
         {
             _repository = repository;
         }
