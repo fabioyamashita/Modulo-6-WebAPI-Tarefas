@@ -19,9 +19,13 @@ Faça um filter, e crie uma classe específica para gravar logs, que escreva no 
 
 A linha de log deve ter o seguinte formato (se a requisição for válida):
 
+```
 <datetime> - Game <id> - <titulo> - <Remover|Alterar (e descrever a alteração)>
-
+```
+  
 Exemplo:
 
-01/01/2021 13:45:00 - Game 1 - Counter Strike - Removido
+```
+01/01/2021 13:45:00 - Game 1 - Counter Strike - Removido  
 01/01/2021 13:45:00 - Game 1 - Counter Strike - Alterado de X para Y
+```
