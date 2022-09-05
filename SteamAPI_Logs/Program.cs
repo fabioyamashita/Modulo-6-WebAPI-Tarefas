@@ -35,6 +35,7 @@ namespace SteamAPI
             #region Injecao de dependencia do Repository
             
             builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+            builder.Services.AddScoped(typeof(ILogRepository), typeof(LogRepository));
             
             #endregion
 
@@ -68,6 +69,8 @@ namespace SteamAPI
                 service.Generate();
             }
             #endregion
+
+            TxtGenerator.GenerateFile();
 
             app.Run();
         }

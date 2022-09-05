@@ -9,19 +9,21 @@ namespace SteamAPI.Filters
     public class CustomActionFilterLogger : Attribute, IActionFilter
     {
         private readonly IBaseRepository<Games> _repository;
+        private readonly ILogRepository _logRepository;
         private int _id;
         private Games _gamePreviousState { get; set; } = new Games();
 
-        public CustomActionFilterLogger(IBaseRepository<Games> repository)
+        public CustomActionFilterLogger(IBaseRepository<Games> repository, ILogRepository logRepository)
         {
             _repository = repository;
+            _logRepository = logRepository;
         }
 
         public void OnActionExecuted(ActionExecutedContext context)
         {
-            //if (body.GetType().Equals(typeof(Microsoft.AspNetCore.Mvc.OkObjectResult)))
+            //if (body.GetType().Equals(typeof(Microsoft.AspNetCore.Mvc.ObjectResult)))
             //{
-            //    var res = ((Microsoft.AspNetCore.Mvc.OkObjectResult)context.Result).Value;
+            //    var res = ((Microsoft.AspNetCore.Mvc.ObjectResult)context.Result).Value;
 
             //    if (res.GetType().Equals(typeof(Games)))
             //    {
@@ -37,17 +39,12 @@ namespace SteamAPI.Filters
 
                 Games response = res as Games;
 
-                string message = $"{DateTime.Now.ToString("G")} - Game {response.Id} - {response.Name} - Atualizado de:" +
-                    $"{JsonSerializer.Serialize(_gamePreviousState)} para {JsonSerializer.Serialize(response)}";
-
-                Console.WriteLine(message);
+                SaveLog(_gamePreviousState, response);
             }
 
             else if (context.HttpContext.Request.Method == "DELETE")
             {
-                string message = $"{DateTime.Now.ToString("G")} - Game {_gamePreviousState.Id} - {_gamePreviousState.Name} - Removido";
-
-                Console.WriteLine(message);
+                SaveLog(_gamePreviousState);
             }
         }
 
@@ -74,17 +71,27 @@ namespace SteamAPI.Filters
             }
         }
 
-        // Fazer o console.write no console
-        public void LogInformation()
+        // Update (Put/Patch)
+        private void SaveLog(Games gamesPreviousState, Games gamesCurrentState)
         {
+            string message = $"{DateTime.Now.ToString("G")} - Game {gamesCurrentState.Id} - {gamesCurrentState.Name} " +
+                             $"- Atualizado de:" +
+                             $"{JsonSerializer.Serialize(gamesPreviousState)} " +
+                             $"para {JsonSerializer.Serialize(gamesCurrentState)}";
 
+            Console.WriteLine(message);
+
+            _logRepository.Insert(message);
         }
 
-        // Salvar em um arquivo txt
-        // Criar um novo LogRespository
-        public void SaveLogToFile()
+        // Delete
+        private void SaveLog(Games gamesPreviousState)
         {
+            string message = $"{DateTime.Now.ToString("G")} - Game {gamesPreviousState.Id} - {gamesPreviousState.Name} - Removido";
 
+            Console.WriteLine(message);
+
+            _logRepository.Insert(message);
         }
     }
 }
