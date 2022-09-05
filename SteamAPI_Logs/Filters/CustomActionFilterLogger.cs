@@ -10,7 +10,7 @@ namespace SteamAPI.Filters
     {
         private readonly IBaseRepository<Games> _repository;
         private readonly ILogRepository _logRepository;
-        private int _id;
+
         private Games _gamePreviousState { get; set; } = new Games();
 
         public CustomActionFilterLogger(IBaseRepository<Games> repository, ILogRepository logRepository)
@@ -21,18 +21,6 @@ namespace SteamAPI.Filters
 
         public void OnActionExecuted(ActionExecutedContext context)
         {
-            //if (body.GetType().Equals(typeof(Microsoft.AspNetCore.Mvc.ObjectResult)))
-            //{
-            //    var res = ((Microsoft.AspNetCore.Mvc.ObjectResult)context.Result).Value;
-
-            //    if (res.GetType().Equals(typeof(Games)))
-            //    {
-            //        Games response = res as Games;
-
-            //        Console.WriteLine($"{DateTime.Now.ToString("G")} - Game {response.Id} ");
-            //    }
-            //}
-
             if (context.HttpContext.Request.Method == "PUT" || context.HttpContext.Request.Method == "PATCH")
             {
                 var res = ((Microsoft.AspNetCore.Mvc.ObjectResult)context.Result).Value;
@@ -54,9 +42,9 @@ namespace SteamAPI.Filters
                 context.HttpContext.Request.Method == "PATCH" ||
                 context.HttpContext.Request.Method == "DELETE")
             {
-                _id = int.Parse(context.ActionArguments["id"].ToString());
+                var id = int.Parse(context.ActionArguments["id"].ToString());
 
-                var _gamePreviousStateCopy = _repository.GetByKey(_id).Result;
+                var _gamePreviousStateCopy = _repository.GetByKey(id).Result;
 
                 // Criando um objeto cópia
                 // se eu atribuisse simplesmente com =, ele seria um ponteiro
