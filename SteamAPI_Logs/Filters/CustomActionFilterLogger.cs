@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc.Filters;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 using SteamAPI.Interfaces;
+using SteamAPI.Logs;
 using SteamAPI.Models;
 using System.Text.Json;
 
@@ -10,6 +12,7 @@ namespace SteamAPI.Filters
     {
         private readonly IBaseRepository<Games> _repository;
         private readonly ILogRepository _logRepository;
+        private readonly List<int> _successStatusCodes;
 
         private Games _gamePreviousState { get; set; } = new Games();
 
@@ -17,69 +20,56 @@ namespace SteamAPI.Filters
         {
             _repository = repository;
             _logRepository = logRepository;
+            _successStatusCodes = new List<int>() { StatusCodes.Status200OK, StatusCodes.Status201Created };
         }
 
         public void OnActionExecuted(ActionExecutedContext context)
         {
-            if (context.HttpContext.Request.Method == "PUT" || context.HttpContext.Request.Method == "PATCH")
+            if (context.HttpContext.Request.Path.Value.StartsWith("/api/Games/", StringComparison.InvariantCultureIgnoreCase) &&
+                _successStatusCodes.Contains(context.HttpContext.Response.StatusCode))
             {
-                var res = ((Microsoft.AspNetCore.Mvc.ObjectResult)context.Result).Value;
+                var id = int.Parse(context.HttpContext.Request.Path.ToString().Split("/").Last());
 
-                Games response = res as Games;
+                if (ContextContainsRequestMethods(context, "put", "patch"))
+                {
+                    var gameCurrentState = _repository.GetByKey(id).Result;
 
-                SaveLog(_gamePreviousState, response);
-            }
+                    CustomLogs.SaveLog(_logRepository, _gamePreviousState, gameCurrentState);
+                }
 
-            else if (context.HttpContext.Request.Method == "DELETE")
-            {
-                SaveLog(_gamePreviousState);
+                else if (ContextContainsRequestMethods(context, "delete"))
+                {
+                    CustomLogs.SaveLog(_logRepository, _gamePreviousState);
+                }
             }
         }
 
         public void OnActionExecuting(ActionExecutingContext context)
         {
-            if (context.HttpContext.Request.Method == "PUT" ||
-                context.HttpContext.Request.Method == "PATCH" ||
-                context.HttpContext.Request.Method == "DELETE")
+            if (String.Equals(context.ActionDescriptor.RouteValues["controller"], "games", StringComparison.InvariantCultureIgnoreCase) &&
+                ContextContainsRequestMethods(context, "put", "patch", "delete"))
             {
                 var id = int.Parse(context.ActionArguments["id"].ToString());
 
                 var _gamePreviousStateCopy = _repository.GetByKey(id).Result;
 
-                // Criando um objeto cópia
-                // se eu atribuisse simplesmente com =, ele seria um ponteiro
-                // Sendo assim, uma vez modificado ou deletado o original, ele também mudaria
-                _gamePreviousState.Id = _gamePreviousStateCopy.Id;
-                _gamePreviousState.AppId = _gamePreviousStateCopy.AppId;
-                _gamePreviousState.Name = _gamePreviousStateCopy.Name;
-                _gamePreviousState.Developer = _gamePreviousStateCopy.Developer;
-                _gamePreviousState.Platforms = _gamePreviousStateCopy.Platforms;
-                _gamePreviousState.Categories = _gamePreviousStateCopy.Categories;
-                _gamePreviousState.Genres = _gamePreviousStateCopy.Genres;
+                if (_gamePreviousStateCopy != null)
+                {
+                    // Criando um objeto cópia (Shallow Copy) usando MemberwiseClone
+                    // Como a minha classe Games não possui nenhuma propriedade do tipo referência,
+                    // não tem problema, pois as variáveis do tipo valor são copiadas.
+                    // Se existisse algum tipo referência, só o endereço na memória seria copiado
+                    _gamePreviousState = (Games)_gamePreviousStateCopy.Clone();
+                }
             }
         }
 
-        // Update (Put/Patch)
-        private void SaveLog(Games gamesPreviousState, Games gamesCurrentState)
+        private static bool ContextContainsRequestMethods(FilterContext context, params string[] methods)
         {
-            string message = $"{DateTime.Now.ToString("G")} - Game {gamesCurrentState.Id} - {gamesCurrentState.Name} " +
-                             $"- Atualizado de:" +
-                             $"{JsonSerializer.Serialize(gamesPreviousState)} " +
-                             $"para {JsonSerializer.Serialize(gamesCurrentState)}";
+            if (methods.Any(method => context.HttpContext.Request.Method.Equals(method, StringComparison.InvariantCultureIgnoreCase)))
+                return true;
 
-            Console.WriteLine(message);
-
-            _logRepository.Insert(message);
-        }
-
-        // Delete
-        private void SaveLog(Games gamesPreviousState)
-        {
-            string message = $"{DateTime.Now.ToString("G")} - Game {gamesPreviousState.Id} - {gamesPreviousState.Name} - Removido";
-
-            Console.WriteLine(message);
-
-            _logRepository.Insert(message);
+            return false;
         }
     }
 }

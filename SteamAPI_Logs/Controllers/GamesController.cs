@@ -12,9 +12,8 @@ namespace SteamAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [CustomAsyncActionFilterController]
-    public class GamesController : ControllerBase
+    public class GamesController : ControllerBase, IBaseController<Games, GamesDto, GamesPatchDto>
     {
-
         private readonly IBaseRepository<Games> _repository;
         private readonly ILogger<GamesController> _logger;
 
@@ -39,7 +38,7 @@ namespace SteamAPI.Controllers
         [CustomActionFilterEndpoint]
         public async Task<IActionResult> Get([FromQuery] int page, int maxResults)
         {
-            throw new Exception($"Falha de comunicação com o Banco de Dados. Stack Trace: {Environment.StackTrace}");
+            //throw new Exception($"Falha de comunicação com o Banco de Dados. Stack Trace: {Environment.StackTrace}");
             var games = await _repository.Get(page, maxResults);
             return Ok(games);
         }
@@ -47,7 +46,7 @@ namespace SteamAPI.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(Games), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Get([FromRoute] int id)
+        public async Task<IActionResult> GetBy([FromRoute] int id)
         {
             var game = await _repository.GetByKey(id);
             ////Consultar quantas vezes o game foi baixado

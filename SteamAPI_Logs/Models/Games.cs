@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace SteamAPI.Models
 {
-    public class Games
+    public class Games : ICloneable
     {
 		[Key]
         [JsonPropertyName("id")]
@@ -35,6 +35,11 @@ namespace SteamAPI.Models
             Platforms = platforms;
             Categories = categories;
             Genres = genres;
+        }
+
+        public object Clone()
+        {
+            return this.MemberwiseClone();
         }
     }
 }
